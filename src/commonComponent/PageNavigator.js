@@ -1,20 +1,17 @@
 import { useContext } from "react";
-import { Button, Col, Container, Form, ListGroup, Pagination, Row } from "react-bootstrap";
-import { Link } from "react-router-dom/cjs/react-router-dom.min";
+import { Pagination } from "react-bootstrap";
 import userContext from "../context/Context";
 
 const PageNavigator=()=>{
   
   const {resultPage,fncGetList} = useContext(userContext);
-  console.log(resultPage);
   console.log(resultPage.currentPage+"/"+resultPage.pageUnit+"/"+resultPage.beginUnitPage+"/"+resultPage.endUnitPage);
-  console.log(fncGetList);
 
   const pageFor=()=>{
     const result = [];
     for (let i=resultPage.beginUnitPage;i<=resultPage.endUnitPage;i++){
       result.push(
-        <Pagination.Item onClick={() => fncGetList(i)}>{i}</Pagination.Item>
+        <Pagination.Item key={i} onClick={() => fncGetList(i)}>{i}</Pagination.Item>
       );
     }
     return result;

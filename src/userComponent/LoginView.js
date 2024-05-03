@@ -20,7 +20,7 @@ const LoginView = () => {
     console.log(userId, password);
 
     axios
-      .post("http://localhost:8000/user/react/login", {
+      .post("http://192.168.0.31:8000/user/react/login", {
         userId: userId,
         password: password
       })

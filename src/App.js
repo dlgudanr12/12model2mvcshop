@@ -45,13 +45,13 @@ function App() {
             </userContext.Provider>
           </Route>
 
-          <Route path="/productRest/react/listProduct">
+          <Route path="/productRest/react/listProduct" exact>
           <userContext.Provider value={'search'}>
             <ListProduct />
             </userContext.Provider>
           </Route>
 
-          <Route path="/productRest/manage/listProduct">
+          <Route path="/productRest/react/listProduct/manage" exact>
           <userContext.Provider value={'manage'}>
             <ListProduct />
             </userContext.Provider>

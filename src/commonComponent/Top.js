@@ -57,7 +57,7 @@ const Top = () => {
                     <Link to="/productRest/json/addProduct">판매상품등록</Link>
                   </NavDropdown.Item>
                   <NavDropdown.Item>
-                    <Link to="/productRest/manage/listProduct">판매상품관리</Link>
+                    <Link to="/productRest/react/listProduct/manage">판매상품관리</Link>
                   </NavDropdown.Item>
                   <NavDropdown.Item>
                     <Link to="/purchaseRest/json/listDelivery">배송 관리</Link>

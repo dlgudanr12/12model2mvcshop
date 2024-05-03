@@ -39,7 +39,7 @@ const Main=()=>{
                     <Link to="/productRest/json/addProduct">판매상품등록</Link>
                   </ListGroup.Item>
                   <ListGroup.Item>
-                    <Link to="/productRest/manage/listProduct">판매상품관리</Link>
+                    <Link to="/productRest/react/listProduct/manage">판매상품관리</Link>
                   </ListGroup.Item>
                   <ListGroup.Item>
                     <Link to="/purchaseRest/json/listDelivery">배송 관리</Link>

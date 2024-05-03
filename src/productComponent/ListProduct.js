@@ -1,90 +1,142 @@
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
-import { Button, Col, Container, Form, FormSelect, ListGroup, Row } from "react-bootstrap";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
 import userContext from "../context/Context";
 import { Link, Route } from "react-router-dom/cjs/react-router-dom.min";
 import PageNavigator from "../commonComponent/PageNavigator";
 
-const ListProduct=()=>{
-    const user =JSON.parse(sessionStorage.getItem("user"));
-    const active=Boolean(sessionStorage.getItem("active"));
-  const menu=useContext(userContext);
+const ListProduct = () => {
+  const menu = useContext(userContext);
   console.log("ListProduct menu : " + menu);
 
-  let userRole = null;
-  if(active===true){
-    userRole = user.role;
-  }
+  const [resultPage, setResultPage] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage2, setCurrentPage2] = useState(currentPage);
+  const [totalCount, setTotalCount] = useState(1);
+  const [searchCategory, setSearchCategory] = useState(0);
+  const [listCategory, setListCategory] = useState(null);
+  const [list, setList] = useState();
+  const [loadingPage,setLoadingPage]=useState(0);
+  const searchCategoryName=useRef(0);
 
-  const [resultPage,setResultPage]=useState(null);
-  const [currentPage,setCurrentPage]=useState(1);
-  const [totalCount,setTotalCount]=useState(1);
-  const [searchCategory,setSearchCategory]=useState(0);
-  const [listCategory,setListCategory]=useState( null);
-  useEffect(()=>{
+  let no = 0;
+  useEffect(() => {
     console.log("ListProduct useEffect");
-    callListProduct();
-  },[]);
-  
-  const callListProduct=async()=>{
-    try{
-      const response = await axios.get("http://localhost:8000/productRest/reactGet/listProduct");
-        console.log(response.data);
-        setResultPage(response.data.resultPage);
-        setCurrentPage(response.data.resultPage.currentPage);
-        setTotalCount(response.data.resultPage.totalCount);
-        setSearchCategory(response.data.search.searchCategory);
-        setListCategory(response.data.listCategory);
-    }catch(e){
-      console.log(e);
-    }
-  }
-  console.log("ListProduct.listCategory : "+JSON.stringify(listCategory));
+    // setTimeout(() => fncGetList(currentPage), 100);
+    // setTimeout(() => fncScrollList(currentPage + 1), 200);
+    // setTimeout(() => fncScrollList(currentPage + 2), 300);
+    // setTimeout(() => setCurrentPage2(currentPage + 2), 400);
+    fncGetList(currentPage);
+  }, [currentPage,loadingPage]);
 
-  const fncGetList=async(currentPage)=>{
-    try{
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  });
+
+  const fncGetList = async (currentPage) => {
+    try {
       const response = await axios.post(
-        "http://localhost:8000/productRest/reactPost/listProduct",
-        { currentPage : currentPage }
+        "http://192.168.0.31:8000/productRest/reactPost/listProduct",
+        { currentPage: currentPage, searchCategory: searchCategory
+           }
       );
-      console.log(response.data);
+
       setResultPage(response.data.resultPage);
       setCurrentPage(response.data.resultPage.currentPage);
       setTotalCount(response.data.resultPage.totalCount);
       setSearchCategory(response.data.search.searchCategory);
       setListCategory(response.data.listCategory);
+      setList(response.data.list);
 
-    }catch(e){
+      startEvent();
+      window.scrollTo({
+        top: 0,
+      });
+    } catch (e) {
       console.log(e);
     }
+  };
 
+  console.log("ListProduct.listCategory : " + JSON.stringify(listCategory));
+
+  const searchButton=()=>{
+    console.log("searchCategoryName.current.value :"+searchCategoryName.current.value);
+    setSearchCategory(searchCategoryName.current.value);
+    setLoadingPage(loadingPage+1);
   }
- 
-  // const login = async () => {
-  //   console.log("login arrow function");
 
-  //   let userId = document.getElementsByName("userId")[0].value;
-  //   let password = document.getElementsByName("password")[0].value;
-  //   console.log(userId, password);
+  const startEvent = () => {
+    fncScrollList(currentPage + 1).then(
+      fncScrollList(currentPage + 2).then(
+        setCurrentPage2(currentPage + 3))
+    );
+  };
 
-  //   axios
-  //     .post("http://localhost:8000/user/react/login", {
-  //       userId: userId,
-  //       password: password
-  //     })
-  //     .then((response) => {
-  //       console.log(response.data);
+  const handleScroll = () => {
+    if (
+      window.innerHeight + document.documentElement.scrollTop ===
+      document.documentElement.offsetHeight
+    ) {
+      fncScrollList(currentPage2); // 스크롤이 페이지 하단에 도달하면 데이터를 추가로 불러옴
+      console.log("currentPage2+1 : " + (currentPage2));
+      setCurrentPage2(currentPage2 + 1);
+    }
+  };
 
-  //       if (response.data!=null) {
-  //         user.changeLogon(response.data);
-  //         sessionStorage.setItem('active',true);
-  //         sessionStorage.setItem('user',JSON.stringify(response.data));
-  //         history.push("/");
-  //       } else {
-  //         alert("아이디,패스워드를 확인하시고 다시 로그인...");
-  //       }
-  //     });
+  const fncScrollList = async (currentPage) => {
+    try {
+      const response = await axios.post(
+        "http://192.168.0.31:8000/productRest/reactPost/listProduct",
+        { currentPage: currentPage, searchCategory: searchCategory }
+      );
 
+      setSearchCategory(response.data.search.searchCategory);
+      setList((prevList) => [...prevList, ...response.data.list]);
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const fncListProductRow = () => {
+    const result = [];
+    console.log(list);
+    result.push(
+      <Row>
+        {list &&
+          list.map((product, index) => (
+            <Col>
+              <Card key={product.prodNo} style={{ width: "26rem", }}>
+                <Container key={index}>
+                  <Card.Header>
+                    <h3>{" " + (no += 1)+ ", " +product.prodNo + ", " + product.prodName}</h3>
+                  </Card.Header>
+                  <Row>
+                    <Col>
+                      <Card.Img
+                        src={
+                          "/resource/images/uploadFiles/" + product.fileList[0]
+                        }
+                      />
+                    </Col>
+                    <Col>
+                      <p>{" 가격 :" + product.price}</p>
+                      <p> 등록일</p>
+                      <p>{" " + product.regDate}</p>
+                      {product.prodQuantity !== 0 ? <p> 판매 중</p> : null}
+                      {product.prodQuantity === 0 ? <p> 재고 없음</p> : null}
+                      <p>{" 재고 : " + product.prodQuantity} 개</p>
+                    </Col>
+                  </Row>
+                </Container>
+              </Card>
+            </Col>
+          ))}
+      </Row>
+    );
+    return result;
+  };
 
   return (
     <div className="ViewGood">
@@ -104,7 +156,11 @@ const ListProduct=()=>{
 
           <Row>
             <Col>
-              <Form.Select style={{ width: "200px", display: "inline" }}>
+              <Form.Select
+                defaultValue={"0"}
+                style={{ width: "200px", display: "inline" }}
+                ref={searchCategoryName}
+              >
                 <option value={"0"} selected={searchCategory === "0"}>
                   전체
                 </option>
@@ -132,15 +188,38 @@ const ListProduct=()=>{
                   <Button>수정</Button>
                 </Link>
               ) : null}
-              {resultPage!==null ?(
-              <userContext.Provider value={{resultPage, fncGetList}}>
-                <Route path="/productRest/react/listProduct">
-                  {/* <br/><Button onClick={()=>fncGetList(3)}>Page</Button> */}
+            </Col>
+            <Col style={{display:"flex",justifyContent: "right"}}>
+              <Button onClick={searchButton}>검색</Button>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              {resultPage !== null ? (
+                <userContext.Provider value={{ resultPage, fncGetList }}>
                   <br />
-                  <PageNavigator />
-                </Route>
-              </userContext.Provider>
-              ):null}
+                  <Route path="/productRest/react/listProduct">
+                    {/* <br/><Button onClick={()=>fncGetList(3)}>Page</Button> */}
+                    <PageNavigator />
+                  </Route>
+                </userContext.Provider>
+              ) : null}
+            </Col>
+          </Row>
+
+          {fncListProductRow()}
+
+          <Row>
+            <Col>
+              {resultPage !== null ? (
+                <userContext.Provider value={{ resultPage, fncGetList }}>
+                  <br />
+                  <Route path="/productRest/react/listProduct">
+                    {/* <br/><Button onClick={()=>fncGetList(3)}>Page</Button> */}
+                    <PageNavigator />
+                  </Route>
+                </userContext.Provider>
+              ) : null}
             </Col>
           </Row>
         </Container>
